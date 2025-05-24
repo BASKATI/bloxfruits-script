@@ -1,0 +1,27 @@
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+local Window = OrionLib:MakeWindow({Name = "Blox Fruits Test GUI", HidePremium = false, IntroEnabled = false})
+
+local Tab = Window:MakeTab({
+    Name = "Main",
+    Icon = "rbxassetid://6031071050",
+    PremiumOnly = false
+})
+
+Tab:AddButton({
+    Name = "ทดสอบปุ่ม",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "แจ้งเตือน",
+            Content = "ปุ่มทดสอบทำงานแล้ว!",
+            Image = "rbxassetid://6031071050",
+            Time = 2
+        })
+    end
+})
+
+OrionLib:MakeNotification({
+    Name = "โหลดสำเร็จ!",
+    Content = "เมนู OrionLib ขึ้นแล้ว",
+    Image = "rbxassetid://6031071050",
+    Time = 3
+})
