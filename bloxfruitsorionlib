@@ -1,0 +1,143 @@
+-- โหลด OrionLib
+local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
+local Window = OrionLib:MakeWindow({Name = "Blox Fruits GUI (Boss/Fruit/Teleport)", HidePremium = false, IntroEnabled = false})
+
+-- ========== ตัวแปรควบคุม ==========
+local AutoFarmBoss = false
+local AutoBuyFruit = false
+
+-- ========== เมนู Auto Farm Boss (Swan) ==========
+local BossTab = Window:MakeTab({
+    Name = "Auto Farm Boss",
+    Icon = "rbxassetid://6031071050",
+    PremiumOnly = false
+})
+
+BossTab:AddToggle({
+    Name = "Auto Farm Boss Swan",
+    Default = false,
+    Callback = function(v)
+        AutoFarmBoss = v
+        if v then
+            OrionLib:MakeNotification({
+                Name = "Auto Farm Boss",
+                Content = "เริ่มฟาร์ม Swan...",
+                Image = "rbxassetid://6031071050",
+                Time = 3
+            })
+            spawn(function()
+                while AutoFarmBoss and wait(0.5) do
+                    local boss = nil
+                    for _,v in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if v.Name == "Swan [Lv. 240] [Boss]" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                            boss = v
+                            break
+                        end
+                    end
+                    if boss then
+                        -- วาร์ปไปใกล้ Swan
+                        pcall(function()
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = boss.HumanoidRootPart.CFrame + Vector3.new(0,10,0)
+                        end)
+                        wait(0.2)
+                        -- โจมตี (กดเมาส์ซ้าย)
+                        pcall(function()
+                            repeat
+                                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 then
+                                    game:GetService("VirtualUser"):ClickButton1(Vector2.new())
+                                    wait(0.1)
+                                end
+                            until not AutoFarmBoss or not boss or not boss:FindFirstChild("Humanoid") or boss.Humanoid.Health <= 0
+                        end)
+                    else
+                        -- ไม่พบ Swan [Lv. 240] [Boss]
+                        wait(2)
+                    end
+                end
+            end)
+        else
+            OrionLib:MakeNotification({
+                Name = "Auto Farm Boss",
+                Content = "หยุดฟาร์ม Swan",
+                Image = "rbxassetid://6031071050",
+                Time = 2
+            })
+        end
+    end
+})
+
+BossTab:AddLabel("หมายเหตุ: Swan เกิดที่เกาะ Prison (โลก 1)")
+
+-- ========== เมนู Auto Buy Fruit ==========
+local FruitTab = Window:MakeTab({
+    Name = "Auto Buy Fruit",
+    Icon = "rbxassetid://6031075931",
+    PremiumOnly = false
+})
+
+FruitTab:AddToggle({
+    Name = "สุ่มผลปีศาจอัตโนมัติ (Auto Buy Fruit)",
+    Default = false,
+    Callback = function(v)
+        AutoBuyFruit = v
+        if v then
+            OrionLib:MakeNotification({
+                Name = "Auto Buy Fruit",
+                Content = "เริ่มสุ่มผลปีศาจอัตโนมัติ!",
+                Image = "rbxassetid://6031075931",
+                Time = 2
+            })
+            spawn(function()
+                while AutoBuyFruit do
+                    pcall(function()
+                        game:GetService("ReplicatedStorage").Remotes['CommF_']:InvokeServer("BuyRandomDevilFruit",true)
+                    end)
+                    wait(65) -- Cooldown ระบบเกม 1 ชม. แต่เพื่อความปลอดภัยรอ 65 วินาที
+                end
+            end)
+        else
+            OrionLib:MakeNotification({
+                Name = "Auto Buy Fruit",
+                Content = "หยุดสุ่มผลปีศาจอัตโนมัติ",
+                Image = "rbxassetid://6031075931",
+                Time = 2
+            })
+        end
+    end
+})
+
+FruitTab:AddLabel("สุ่มผลปีศาจจาก Blox Fruit Dealer NPC")
+
+-- ========== เมนู Auto Teleport ไปโลกที่ 2 ==========
+local TeleTab = Window:MakeTab({
+    Name = "Teleport",
+    Icon = "rbxassetid://6031071050",
+    PremiumOnly = false
+})
+
+TeleTab:AddButton({
+    Name = "วาปไปโลกที่ 2 (Second Sea)",
+    Callback = function()
+        -- พิกัดเริ่มต้นของโลกที่ 2 (Kingdom of Rose)
+        local cf = CFrame.new(-5249, 315, -2735)
+        pcall(function()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = cf
+        end)
+        OrionLib:MakeNotification({
+            Name = "Teleport",
+            Content = "วาปไปโลกที่ 2 (Kingdom of Rose)",
+            Image = "rbxassetid://6031071050",
+            Time = 3
+        })
+    end
+})
+
+TeleTab:AddLabel("หากยังไม่ย้ายโลก ให้ทำเควส Bartilo ก่อนที่ Café โลก 1")
+
+-- ========== แจ้งเตือนโหลดสําเร็จ ==========
+OrionLib:MakeNotification({
+    Name = "Blox Fruits GUI",
+    Content = "โหลดเมนู Boss/Fruit/Teleport สำเร็จ!",
+    Image = "rbxassetid://4483345998",
+    Time = 4
+})
