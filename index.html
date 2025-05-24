@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ร้านค้าออนไลน์ | ระบบล็อกอิน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --main-red: #d32f2f;
+      --dark-red: #a31515;
+      --light-red: #ffebee;
+      --white: #fff;
+      --gray: #f5f5f5;
+      --shadow: 0 2px 8px rgba(211,47,47, 0.15);
+    }
+    body {
+      background: var(--light-red);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 440px;
+      margin: 40px auto;
+      background: var(--white);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 32px 32px 24px 32px;
+    }
+    h2 {
+      text-align: center;
+      color: var(--main-red);
+      margin-bottom: 24px;
+      font-weight: 700;
+    }
+    .field {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--dark-red);
+      font-weight: 500;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--main-red);
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input[type="text"], input[type="password"], input[type="number"] {
+      background: var(--gray);
+      border: 1.5px solid var(--main-red);
+      color: #222;
+    }
+    button {
+      background: var(--main-red);
+      color: var(--white);
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: var(--dark-red);
+    }
+    .products-list {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .product-card {
+      background: var(--light-red);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border-left: 6px solid var(--main-red);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .product-info {
+      flex-grow: 1;
+    }
+    .product-title {
+      font-weight: 600;
+      color: var(--main-red);
+      font-size: 1.04rem;
+      margin-bottom: 3px;
+    }
+    .product-price {
+      color: var(--dark-red);
+      font-size: 0.98rem;
+    }
+    .logout-btn {
+      margin-top: 12px;
+      background: #fff;
+      color: var(--main-red);
+      border: 1.5px solid var(--main-red);
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+    }
+    .logout-btn:hover {
+      background: var(--main-red);
+      color: #fff;
+    }
+    .error {
+      color: var(--dark-red);
+      background: #fff0f0;
+      padding: 6px 10px;
+      border-radius: 5px;
+      margin-bottom: 8px;
+      text-align: center;
+      font-size: 0.98rem;
+    }
+    .success {
+      color: #fff;
+      background: var(--main-red);
+      padding: 6px 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      text-align: center;
+      font-size: 0.98rem;
+    }
+    @media (max-width: 599px) {
+      .container { max-width: 97vw; padding: 18px 4vw 10px 4vw; }
+      h2 { font-size: 1.32rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="login-container">
+    <h2>เข้าสู่ระบบร้านค้าสีแดง</h2>
+    <form id="login-form">
+      <div class="field">
+        <label for="username">ชื่อผู้ใช้</label>
+        <input type="text" id="username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">รหัสผ่าน</label>
+        <input type="password" id="password" required autocomplete="current-password">
+      </div>
+      <button type="submit">เข้าสู่ระบบ</button>
+      <div id="login-error" class="error" style="display:none;"></div>
+    </form>
+  </div>
+  <div class="container" id="shop-container" style="display: none;">
+    <h2>สินค้าในร้าน</h2>
+    <form id="add-product-form">
+      <div class="field">
+        <label for="product-name">ชื่อสินค้า</label>
+        <input type="text" id="product-name" required>
+      </div>
+      <div class="field">
+        <label for="product-price">ราคาสินค้า (บาท)</label>
+        <input type="number" id="product-price" min="1" step="1" required>
+      </div>
+      <button type="submit">เพิ่มสินค้า</button>
+      <div id="product-success" class="success" style="display:none;"></div>
+    </form>
+    <div class="products-list" id="products-list">
+      <!-- สินค้าจะเพิ่มตรงนี้ -->
+    </div>
+    <button class="logout-btn" id="logout-btn">ออกจากระบบ</button>
+  </div>
+  <script>
+    // ข้อมูลจำลองล็อกอิน (ปรับเปลี่ยนได้)
+    const USERNAME = "admin";
+    const PASSWORD = "1234";
+
+    // เก็บสินค้าใน localStorage
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+
+    const loginContainer = document.getElementById("login-container");
+    const shopContainer = document.getElementById("shop-container");
+    const loginForm = document.getElementById("login-form");
+    const loginError = document.getElementById("login-error");
+
+    const addProductForm = document.getElementById("add-product-form");
+    const productsList = document.getElementById("products-list");
+    const productSuccess = document.getElementById("product-success");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    // ตรวจสอบสถานะล็อกอิน
+    function isLoggedIn() {
+      return sessionStorage.getItem("login") === "ok";
+    }
+
+    function renderProducts() {
+      productsList.innerHTML = "";
+      if(products.length === 0) {
+        productsList.innerHTML = "<div style='text-align:center;color:#888;'>ยังไม่มีสินค้า</div>";
+        return;
+      }
+      products.forEach((p, idx) => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+          <div class="product-info">
+            <div class="product-title">${p.name}</div>
+            <div class="product-price">฿ ${Number(p.price).toLocaleString()}</div>
+          </div>
+          <button style="background:var(--dark-red);color:#fff;width:50px;" onclick="removeProduct(${idx})">ลบ</button>
+        `;
+        productsList.appendChild(card);
+      });
+    }
+
+    function removeProduct(idx) {
+      products.splice(idx, 1);
+      localStorage.setItem('products', JSON.stringify(products));
+      renderProducts();
+    }
+    // ให้ removeProduct ใช้งานได้ใน onclick
+    window.removeProduct = removeProduct;
+
+    // ล็อกอิน
+    loginForm.onsubmit = function(e) {
+      e.preventDefault();
+      loginError.style.display = "none";
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      if(username === USERNAME && password === PASSWORD) {
+        sessionStorage.setItem("login", "ok");
+        loginContainer.style.display = "none";
+        shopContainer.style.display = "block";
+        renderProducts();
+      } else {
+        loginError.innerText = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+        loginError.style.display = "block";
+      }
+    };
+
+    // ออกจากระบบ
+    logoutBtn.onclick = function() {
+      sessionStorage.removeItem("login");
+      loginContainer.style.display = "block";
+      shopContainer.style.display = "none";
+      loginForm.reset();
+    };
+
+    // เพิ่มสินค้า
+    addProductForm.onsubmit = function(e) {
+      e.preventDefault();
+      productSuccess.style.display = "none";
+      const name = document.getElementById("product-name").value.trim();
+      const price = document.getElementById("product-price").value;
+      if(!name || !price) return;
+      products.push({name, price});
+      localStorage.setItem('products', JSON.stringify(products));
+      renderProducts();
+      addProductForm.reset();
+      productSuccess.innerText = "เพิ่มสินค้าเรียบร้อย!";
+      productSuccess.style.display = "block";
+      setTimeout(()=>productSuccess.style.display = "none", 1200);
+    };
+
+    // โหลดครั้งแรก
+    window.onload = function() {
+      if(isLoggedIn()) {
+        loginContainer.style.display = "none";
+        shopContainer.style.display = "block";
+        renderProducts();
+      }
+    }
+  </script>
+</body>
+</html>
